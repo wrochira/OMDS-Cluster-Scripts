@@ -1,0 +1,331 @@
+<!--
+INFO:
+* Benchmark parameter set based off a test idea by WJR
+* Default-2019-04-09 parameter set with the following changes:
+	DIFFUSION_RANGE				50E-9
+	TARGET_KOFF					5.0
+	D_LAT_BTUB					1.00E-12, 2.00E-12, 0.50E-12
+	D_LAT_OMPF					1.00E-12, 2.00E-12, 0.50E-12
+	D_LAT_OMPA					1.00E-12, 2.00E-12, 0.50E-12
+-->
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<EXPERIMENT>
+	<PARAMETERS>
+		<!-- General -->
+		<PARAM NAME="CPU_THREADS" TYPE="java.lang.Integer" VALUE="8" />
+
+		<!-- Visualisation -->
+		<PARAM NAME="SHOW_MSD" TYPE="java.lang.Boolean" VALUE="true" />
+		<PARAM NAME="SHOW_DIFFUSION" TYPE="java.lang.Boolean" VALUE="true" />
+		<PARAM NAME="SHOW_MEMBRANE" TYPE="java.lang.Boolean" VALUE="true" />
+		<PARAM NAME="SHOW_REFERENCE_CIRCLE" TYPE="java.lang.Boolean" VALUE="true" />
+		<PARAM NAME="SHOW_LOCAL_REGION" TYPE="java.lang.Boolean" VALUE="true" />
+		<PARAM NAME="LOCAL_RANGE" TYPE="java.lang.Double" VALUE="50E-9" />
+		<PARAM NAME="DISPLAY_VISUALISATION" TYPE="java.lang.Boolean" VALUE="false" />
+		<PARAM NAME="MAGNIFICATION" TYPE="java.lang.Integer" VALUE="15" />
+		<PARAM NAME="SAVE_VISUALISATION" TYPE="java.lang.Boolean" VALUE="true" />
+		<PARAM NAME="SAVE_FINAL_STATE_ONLY" TYPE="java.lang.Boolean" VALUE="true" />
+		<PARAM NAME="DATA_INTERVAL" TYPE="java.lang.Integer" VALUE="1000" />
+
+		<!-- Data Export -->
+		<PARAM NAME="EXPORT_XML" TYPE="java.lang.Boolean" VALUE="true" />
+		<PARAM NAME="EXPORT_XLSX" TYPE="java.lang.Boolean" VALUE="true" />
+		<PARAM NAME="EXPORT_TRAJECTORIES" TYPE="java.lang.Boolean" VALUE="false" />
+		<PARAM NAME="TRAJECTORY_INTERVAL" TYPE="java.lang.Integer" VALUE="1000" />
+
+		<!-- Simulation -->
+		<PARAM NAME="N_PROTEINS" TYPE="java.lang.Integer" VALUE="500" />
+		<PARAM NAME="N_STEPS" TYPE="java.lang.Integer" VALUE="1000000" />
+		<PARAM NAME="TIME_STEP" TYPE="java.lang.Double" VALUE="1.0E-6" />
+		<PARAM NAME="CENTRE_WEIGHTING" TYPE="java.lang.Integer" VALUE="4" />
+		<PARAM NAME="FIELD_DEPTH" TYPE="java.lang.Double" VALUE="1.5E-7" />
+
+		<!-- Illumination -->
+		<PARAM NAME="INTENSITY_0" TYPE="java.lang.Double" VALUE="1.0" />
+		<PARAM NAME="LAMBDA_0" TYPE="java.lang.Double" VALUE="4.88E-7" />
+		<PARAM NAME="TIRF_ANGLE" TYPE="java.lang.Double" VALUE="1.3264502315156903" />
+		<PARAM NAME="N1" TYPE="java.lang.Double" VALUE="1.46355" />
+		<PARAM NAME="N2" TYPE="java.lang.Double" VALUE="1.333" />
+
+		<!-- Substrate -->
+		<PARAM NAME="TEMPERATURE" TYPE="java.lang.Double" VALUE="298.0" />
+		<PARAM NAME="VISCOSITY" TYPE="java.lang.Double" VALUE="0.1" />
+		<PARAM NAME="RADIUS" TYPE="java.lang.Double" VALUE="2.0E-7" />
+		<PARAM NAME="LENGTH" TYPE="java.lang.Double" VALUE="2.6E-6" />
+		<PARAM NAME="XMIN" TYPE="java.lang.Double" VALUE="-20.0E-8" />
+		<PARAM NAME="XMAX" TYPE="java.lang.Double" VALUE="20.0E-8" />
+		<PARAM NAME="YMIN" TYPE="java.lang.Double" VALUE="-20.0E-8" />
+		<PARAM NAME="YMAX" TYPE="java.lang.Double" VALUE="20.0E-8" />
+		<PARAM NAME="PERCENTAGE_OCCUPANCY" TYPE="java.lang.Double" VALUE="30" />
+
+		<!-- Diffusion -->
+		<PARAM NAME="DIFFUSION_RANGE" TYPE="java.lang.Double" VALUE="50E-9" />
+		<PARAM NAME="MEMBRANE_DIFFUSING" TYPE="java.lang.Boolean" VALUE="true" />
+		<PARAM NAME="MEMBRANE_ROTATING" TYPE="java.lang.Boolean" VALUE="true" />
+		<PARAM NAME="TARGET_DIFFUSING" TYPE="java.lang.Boolean" VALUE="true" />
+		<PARAM NAME="TARGET_ROTATING" TYPE="java.lang.Boolean" VALUE="true" />
+		<PARAM NAME="TARGET_INTERACTING" TYPE="java.lang.Boolean" VALUE="true" />
+		<PARAM NAME="ALIGNED_DISSOCIATION" TYPE="java.lang.Boolean" VALUE="true" />
+		<PARAM NAME="TARGET_KOFF" TYPE="java.lang.Double" VALUE="5.0" />
+		<PARAM NAME="STICKY_PROTEINS" TYPE="java.lang.Boolean" VALUE="false" />
+
+		<!-- Protein: BtuB -->
+		<PARAM NAME="R_BTUB" TYPE="java.lang.Double" VALUE="2.3E-9" />
+		<PARAM NAME="HEIGHT_BTUB" TYPE="java.lang.Double" VALUE="5.0E-9" />
+		<PARAM NAME="D_LAT_BTUB" TYPE="java.lang.Double" VALUE="1.00E-12" />
+		<PARAM NAME="D_LAT_ASS_BTUB" TYPE="java.lang.Double" VALUE="0.02E-12" />
+		<PARAM NAME="RELPROP_BTUB" TYPE="java.lang.Double" VALUE="1.0" />
+		<PARAM NAME="STARTING_PATCH_COUNT_BTUB" TYPE="java.lang.Integer" VALUE="2" />
+		<PARAM NAME="STARTING_PATCH_ANGLE_BTUB" TYPE="java.lang.Double" VALUE="0.1745" />
+		<PARAM NAME="COLOUR_BTUB" TYPE="java.awt.Color" VALUE="-6174894" />
+
+		<!-- Protein: OmpF -->
+		<PARAM NAME="R_OMPF" TYPE="java.lang.Double" VALUE="3.1E-9" />
+		<PARAM NAME="HEIGHT_OMPF" TYPE="java.lang.Double" VALUE="5.0E-9" />
+		<PARAM NAME="D_LAT_OMPF" TYPE="java.lang.Double" VALUE="1.00E-12" />
+		<PARAM NAME="D_LAT_ASS_OMPF" TYPE="java.lang.Double" VALUE="0.02E-12" />
+		<PARAM NAME="RELPROP_OMPF" TYPE="java.lang.Double" VALUE="111.0" />
+		<PARAM NAME="STARTING_PATCH_COUNT_OMPF" TYPE="java.lang.Integer" VALUE="3" />
+		<PARAM NAME="STARTING_PATCH_ANGLE_OMPF" TYPE="java.lang.Double" VALUE="0.1164" />
+		<PARAM NAME="COLOUR_OMPF" TYPE="java.awt.Color" VALUE="-894374" />
+
+		<!-- Protein: OmpA -->
+		<PARAM NAME="R_OMPA" TYPE="java.lang.Double" VALUE="1.3E-9" />
+		<PARAM NAME="HEIGHT_OMPA" TYPE="java.lang.Double" VALUE="5.0E-9" />
+		<PARAM NAME="D_LAT_OMPA" TYPE="java.lang.Double" VALUE="1.00E-12" />
+		<PARAM NAME="D_LAT_ASS_OMPA" TYPE="java.lang.Double" VALUE="0.02E-12" />
+		<PARAM NAME="RELPROP_OMPA" TYPE="java.lang.Double" VALUE="333.0" />
+		<PARAM NAME="STARTING_PATCH_COUNT_OMPA" TYPE="java.lang.Integer" VALUE="2" />
+		<PARAM NAME="STARTING_PATCH_ANGLE_OMPA" TYPE="java.lang.Double" VALUE="0.1745" />
+		<PARAM NAME="COLOUR_OMPA" TYPE="java.awt.Color" VALUE="-10179132" />
+
+		<!-- Protein: TolA -->
+		<PARAM NAME="R_TOLA" TYPE="java.lang.Double" VALUE="3.75E-9" />
+		<PARAM NAME="HEIGHT_TOLA" TYPE="java.lang.Double" VALUE="5.0E-9" />
+		<PARAM NAME="D_LAT_TOLA" TYPE="java.lang.Double" VALUE="1.00E-12" />
+		<PARAM NAME="D_LAT_ASS_TOLA" TYPE="java.lang.Double" VALUE="0.01E-12" />
+		<PARAM NAME="RELPROP_TOLA" TYPE="java.lang.Double" VALUE="1" />
+		<PARAM NAME="STARTING_PATCH_COUNT_TOLA" TYPE="java.lang.Integer" VALUE="0" />
+		<PARAM NAME="STARTING_PATCH_ANGLE_TOLA" TYPE="java.lang.Double" VALUE="0" />
+		<PARAM NAME="COLOUR_TOLA" TYPE="java.awt.Color" VALUE="-4096777" />
+
+		<!-- Protein: Generаl -->
+		<PARAM NAME="COLOUR_DIFF" TYPE="java.awt.Color" VALUE="-22462" />
+
+		<!-- Inner Membrane -->
+		<PARAM NAME="SIMULATE_INNER_MEMBRANE" TYPE="java.lang.Boolean" VALUE="false" />
+		<PARAM NAME="IM_PERCENTAGE_OCCUPANCY" TYPE="java.lang.Double" VALUE="0" />
+	</PARAMETERS>
+	<PARAMETERS>
+		<!-- General -->
+		<PARAM NAME="CPU_THREADS" TYPE="java.lang.Integer" VALUE="8" />
+
+		<!-- Visualisation -->
+		<PARAM NAME="SHOW_MSD" TYPE="java.lang.Boolean" VALUE="true" />
+		<PARAM NAME="SHOW_DIFFUSION" TYPE="java.lang.Boolean" VALUE="true" />
+		<PARAM NAME="SHOW_MEMBRANE" TYPE="java.lang.Boolean" VALUE="true" />
+		<PARAM NAME="SHOW_REFERENCE_CIRCLE" TYPE="java.lang.Boolean" VALUE="true" />
+		<PARAM NAME="SHOW_LOCAL_REGION" TYPE="java.lang.Boolean" VALUE="true" />
+		<PARAM NAME="LOCAL_RANGE" TYPE="java.lang.Double" VALUE="50E-9" />
+		<PARAM NAME="DISPLAY_VISUALISATION" TYPE="java.lang.Boolean" VALUE="false" />
+		<PARAM NAME="MAGNIFICATION" TYPE="java.lang.Integer" VALUE="15" />
+		<PARAM NAME="SAVE_VISUALISATION" TYPE="java.lang.Boolean" VALUE="true" />
+		<PARAM NAME="SAVE_FINAL_STATE_ONLY" TYPE="java.lang.Boolean" VALUE="true" />
+		<PARAM NAME="DATA_INTERVAL" TYPE="java.lang.Integer" VALUE="1000" />
+
+		<!-- Data Export -->
+		<PARAM NAME="EXPORT_XML" TYPE="java.lang.Boolean" VALUE="true" />
+		<PARAM NAME="EXPORT_XLSX" TYPE="java.lang.Boolean" VALUE="true" />
+		<PARAM NAME="EXPORT_TRAJECTORIES" TYPE="java.lang.Boolean" VALUE="false" />
+		<PARAM NAME="TRAJECTORY_INTERVAL" TYPE="java.lang.Integer" VALUE="1000" />
+
+		<!-- Simulation -->
+		<PARAM NAME="N_PROTEINS" TYPE="java.lang.Integer" VALUE="500" />
+		<PARAM NAME="N_STEPS" TYPE="java.lang.Integer" VALUE="1000000" />
+		<PARAM NAME="TIME_STEP" TYPE="java.lang.Double" VALUE="1.0E-6" />
+		<PARAM NAME="CENTRE_WEIGHTING" TYPE="java.lang.Integer" VALUE="4" />
+		<PARAM NAME="FIELD_DEPTH" TYPE="java.lang.Double" VALUE="1.5E-7" />
+
+		<!-- Illumination -->
+		<PARAM NAME="INTENSITY_0" TYPE="java.lang.Double" VALUE="1.0" />
+		<PARAM NAME="LAMBDA_0" TYPE="java.lang.Double" VALUE="4.88E-7" />
+		<PARAM NAME="TIRF_ANGLE" TYPE="java.lang.Double" VALUE="1.3264502315156903" />
+		<PARAM NAME="N1" TYPE="java.lang.Double" VALUE="1.46355" />
+		<PARAM NAME="N2" TYPE="java.lang.Double" VALUE="1.333" />
+
+		<!-- Substrate -->
+		<PARAM NAME="TEMPERATURE" TYPE="java.lang.Double" VALUE="298.0" />
+		<PARAM NAME="VISCOSITY" TYPE="java.lang.Double" VALUE="0.1" />
+		<PARAM NAME="RADIUS" TYPE="java.lang.Double" VALUE="2.0E-7" />
+		<PARAM NAME="LENGTH" TYPE="java.lang.Double" VALUE="2.6E-6" />
+		<PARAM NAME="XMIN" TYPE="java.lang.Double" VALUE="-20.0E-8" />
+		<PARAM NAME="XMAX" TYPE="java.lang.Double" VALUE="20.0E-8" />
+		<PARAM NAME="YMIN" TYPE="java.lang.Double" VALUE="-20.0E-8" />
+		<PARAM NAME="YMAX" TYPE="java.lang.Double" VALUE="20.0E-8" />
+		<PARAM NAME="PERCENTAGE_OCCUPANCY" TYPE="java.lang.Double" VALUE="30" />
+
+		<!-- Diffusion -->
+		<PARAM NAME="DIFFUSION_RANGE" TYPE="java.lang.Double" VALUE="50E-9" />
+		<PARAM NAME="MEMBRANE_DIFFUSING" TYPE="java.lang.Boolean" VALUE="true" />
+		<PARAM NAME="MEMBRANE_ROTATING" TYPE="java.lang.Boolean" VALUE="true" />
+		<PARAM NAME="TARGET_DIFFUSING" TYPE="java.lang.Boolean" VALUE="true" />
+		<PARAM NAME="TARGET_ROTATING" TYPE="java.lang.Boolean" VALUE="true" />
+		<PARAM NAME="TARGET_INTERACTING" TYPE="java.lang.Boolean" VALUE="true" />
+		<PARAM NAME="ALIGNED_DISSOCIATION" TYPE="java.lang.Boolean" VALUE="true" />
+		<PARAM NAME="TARGET_KOFF" TYPE="java.lang.Double" VALUE="5.0" />
+		<PARAM NAME="STICKY_PROTEINS" TYPE="java.lang.Boolean" VALUE="false" />
+
+		<!-- Protein: BtuB -->
+		<PARAM NAME="R_BTUB" TYPE="java.lang.Double" VALUE="2.3E-9" />
+		<PARAM NAME="HEIGHT_BTUB" TYPE="java.lang.Double" VALUE="5.0E-9" />
+		<PARAM NAME="D_LAT_BTUB" TYPE="java.lang.Double" VALUE="2.00E-12" />
+		<PARAM NAME="D_LAT_ASS_BTUB" TYPE="java.lang.Double" VALUE="0.02E-12" />
+		<PARAM NAME="RELPROP_BTUB" TYPE="java.lang.Double" VALUE="1.0" />
+		<PARAM NAME="STARTING_PATCH_COUNT_BTUB" TYPE="java.lang.Integer" VALUE="2" />
+		<PARAM NAME="STARTING_PATCH_ANGLE_BTUB" TYPE="java.lang.Double" VALUE="0.1745" />
+		<PARAM NAME="COLOUR_BTUB" TYPE="java.awt.Color" VALUE="-6174894" />
+
+		<!-- Protein: OmpF -->
+		<PARAM NAME="R_OMPF" TYPE="java.lang.Double" VALUE="3.1E-9" />
+		<PARAM NAME="HEIGHT_OMPF" TYPE="java.lang.Double" VALUE="5.0E-9" />
+		<PARAM NAME="D_LAT_OMPF" TYPE="java.lang.Double" VALUE="2.00E-12" />
+		<PARAM NAME="D_LAT_ASS_OMPF" TYPE="java.lang.Double" VALUE="0.02E-12" />
+		<PARAM NAME="RELPROP_OMPF" TYPE="java.lang.Double" VALUE="111.0" />
+		<PARAM NAME="STARTING_PATCH_COUNT_OMPF" TYPE="java.lang.Integer" VALUE="3" />
+		<PARAM NAME="STARTING_PATCH_ANGLE_OMPF" TYPE="java.lang.Double" VALUE="0.1164" />
+		<PARAM NAME="COLOUR_OMPF" TYPE="java.awt.Color" VALUE="-894374" />
+
+		<!-- Protein: OmpA -->
+		<PARAM NAME="R_OMPA" TYPE="java.lang.Double" VALUE="1.3E-9" />
+		<PARAM NAME="HEIGHT_OMPA" TYPE="java.lang.Double" VALUE="5.0E-9" />
+		<PARAM NAME="D_LAT_OMPA" TYPE="java.lang.Double" VALUE="2.00E-12" />
+		<PARAM NAME="D_LAT_ASS_OMPA" TYPE="java.lang.Double" VALUE="0.02E-12" />
+		<PARAM NAME="RELPROP_OMPA" TYPE="java.lang.Double" VALUE="333.0" />
+		<PARAM NAME="STARTING_PATCH_COUNT_OMPA" TYPE="java.lang.Integer" VALUE="2" />
+		<PARAM NAME="STARTING_PATCH_ANGLE_OMPA" TYPE="java.lang.Double" VALUE="0.1745" />
+		<PARAM NAME="COLOUR_OMPA" TYPE="java.awt.Color" VALUE="-10179132" />
+
+		<!-- Protein: TolA -->
+		<PARAM NAME="R_TOLA" TYPE="java.lang.Double" VALUE="3.75E-9" />
+		<PARAM NAME="HEIGHT_TOLA" TYPE="java.lang.Double" VALUE="5.0E-9" />
+		<PARAM NAME="D_LAT_TOLA" TYPE="java.lang.Double" VALUE="2.00E-12" />
+		<PARAM NAME="D_LAT_ASS_TOLA" TYPE="java.lang.Double" VALUE="0.01E-12" />
+		<PARAM NAME="RELPROP_TOLA" TYPE="java.lang.Double" VALUE="1" />
+		<PARAM NAME="STARTING_PATCH_COUNT_TOLA" TYPE="java.lang.Integer" VALUE="0" />
+		<PARAM NAME="STARTING_PATCH_ANGLE_TOLA" TYPE="java.lang.Double" VALUE="0" />
+		<PARAM NAME="COLOUR_TOLA" TYPE="java.awt.Color" VALUE="-4096777" />
+
+		<!-- Protein: Generаl -->
+		<PARAM NAME="COLOUR_DIFF" TYPE="java.awt.Color" VALUE="-22462" />
+
+		<!-- Inner Membrane -->
+		<PARAM NAME="SIMULATE_INNER_MEMBRANE" TYPE="java.lang.Boolean" VALUE="false" />
+		<PARAM NAME="IM_PERCENTAGE_OCCUPANCY" TYPE="java.lang.Double" VALUE="0" />
+	</PARAMETERS>
+	<PARAMETERS>
+		<!-- General -->
+		<PARAM NAME="CPU_THREADS" TYPE="java.lang.Integer" VALUE="8" />
+
+		<!-- Visualisation -->
+		<PARAM NAME="SHOW_MSD" TYPE="java.lang.Boolean" VALUE="true" />
+		<PARAM NAME="SHOW_DIFFUSION" TYPE="java.lang.Boolean" VALUE="true" />
+		<PARAM NAME="SHOW_MEMBRANE" TYPE="java.lang.Boolean" VALUE="true" />
+		<PARAM NAME="SHOW_REFERENCE_CIRCLE" TYPE="java.lang.Boolean" VALUE="true" />
+		<PARAM NAME="SHOW_LOCAL_REGION" TYPE="java.lang.Boolean" VALUE="true" />
+		<PARAM NAME="LOCAL_RANGE" TYPE="java.lang.Double" VALUE="50E-9" />
+		<PARAM NAME="DISPLAY_VISUALISATION" TYPE="java.lang.Boolean" VALUE="false" />
+		<PARAM NAME="MAGNIFICATION" TYPE="java.lang.Integer" VALUE="15" />
+		<PARAM NAME="SAVE_VISUALISATION" TYPE="java.lang.Boolean" VALUE="true" />
+		<PARAM NAME="SAVE_FINAL_STATE_ONLY" TYPE="java.lang.Boolean" VALUE="true" />
+		<PARAM NAME="DATA_INTERVAL" TYPE="java.lang.Integer" VALUE="1000" />
+
+		<!-- Data Export -->
+		<PARAM NAME="EXPORT_XML" TYPE="java.lang.Boolean" VALUE="true" />
+		<PARAM NAME="EXPORT_XLSX" TYPE="java.lang.Boolean" VALUE="true" />
+		<PARAM NAME="EXPORT_TRAJECTORIES" TYPE="java.lang.Boolean" VALUE="false" />
+		<PARAM NAME="TRAJECTORY_INTERVAL" TYPE="java.lang.Integer" VALUE="1000" />
+
+		<!-- Simulation -->
+		<PARAM NAME="N_PROTEINS" TYPE="java.lang.Integer" VALUE="500" />
+		<PARAM NAME="N_STEPS" TYPE="java.lang.Integer" VALUE="1000000" />
+		<PARAM NAME="TIME_STEP" TYPE="java.lang.Double" VALUE="1.0E-6" />
+		<PARAM NAME="CENTRE_WEIGHTING" TYPE="java.lang.Integer" VALUE="4" />
+		<PARAM NAME="FIELD_DEPTH" TYPE="java.lang.Double" VALUE="1.5E-7" />
+
+		<!-- Illumination -->
+		<PARAM NAME="INTENSITY_0" TYPE="java.lang.Double" VALUE="1.0" />
+		<PARAM NAME="LAMBDA_0" TYPE="java.lang.Double" VALUE="4.88E-7" />
+		<PARAM NAME="TIRF_ANGLE" TYPE="java.lang.Double" VALUE="1.3264502315156903" />
+		<PARAM NAME="N1" TYPE="java.lang.Double" VALUE="1.46355" />
+		<PARAM NAME="N2" TYPE="java.lang.Double" VALUE="1.333" />
+
+		<!-- Substrate -->
+		<PARAM NAME="TEMPERATURE" TYPE="java.lang.Double" VALUE="298.0" />
+		<PARAM NAME="VISCOSITY" TYPE="java.lang.Double" VALUE="0.1" />
+		<PARAM NAME="RADIUS" TYPE="java.lang.Double" VALUE="2.0E-7" />
+		<PARAM NAME="LENGTH" TYPE="java.lang.Double" VALUE="2.6E-6" />
+		<PARAM NAME="XMIN" TYPE="java.lang.Double" VALUE="-20.0E-8" />
+		<PARAM NAME="XMAX" TYPE="java.lang.Double" VALUE="20.0E-8" />
+		<PARAM NAME="YMIN" TYPE="java.lang.Double" VALUE="-20.0E-8" />
+		<PARAM NAME="YMAX" TYPE="java.lang.Double" VALUE="20.0E-8" />
+		<PARAM NAME="PERCENTAGE_OCCUPANCY" TYPE="java.lang.Double" VALUE="30" />
+
+		<!-- Diffusion -->
+		<PARAM NAME="DIFFUSION_RANGE" TYPE="java.lang.Double" VALUE="50E-9" />
+		<PARAM NAME="MEMBRANE_DIFFUSING" TYPE="java.lang.Boolean" VALUE="true" />
+		<PARAM NAME="MEMBRANE_ROTATING" TYPE="java.lang.Boolean" VALUE="true" />
+		<PARAM NAME="TARGET_DIFFUSING" TYPE="java.lang.Boolean" VALUE="true" />
+		<PARAM NAME="TARGET_ROTATING" TYPE="java.lang.Boolean" VALUE="true" />
+		<PARAM NAME="TARGET_INTERACTING" TYPE="java.lang.Boolean" VALUE="true" />
+		<PARAM NAME="ALIGNED_DISSOCIATION" TYPE="java.lang.Boolean" VALUE="true" />
+		<PARAM NAME="TARGET_KOFF" TYPE="java.lang.Double" VALUE="5.0" />
+		<PARAM NAME="STICKY_PROTEINS" TYPE="java.lang.Boolean" VALUE="false" />
+
+		<!-- Protein: BtuB -->
+		<PARAM NAME="R_BTUB" TYPE="java.lang.Double" VALUE="2.3E-9" />
+		<PARAM NAME="HEIGHT_BTUB" TYPE="java.lang.Double" VALUE="5.0E-9" />
+		<PARAM NAME="D_LAT_BTUB" TYPE="java.lang.Double" VALUE="0.50E-12" />
+		<PARAM NAME="D_LAT_ASS_BTUB" TYPE="java.lang.Double" VALUE="0.02E-12" />
+		<PARAM NAME="RELPROP_BTUB" TYPE="java.lang.Double" VALUE="1.0" />
+		<PARAM NAME="STARTING_PATCH_COUNT_BTUB" TYPE="java.lang.Integer" VALUE="2" />
+		<PARAM NAME="STARTING_PATCH_ANGLE_BTUB" TYPE="java.lang.Double" VALUE="0.1745" />
+		<PARAM NAME="COLOUR_BTUB" TYPE="java.awt.Color" VALUE="-6174894" />
+
+		<!-- Protein: OmpF -->
+		<PARAM NAME="R_OMPF" TYPE="java.lang.Double" VALUE="3.1E-9" />
+		<PARAM NAME="HEIGHT_OMPF" TYPE="java.lang.Double" VALUE="5.0E-9" />
+		<PARAM NAME="D_LAT_OMPF" TYPE="java.lang.Double" VALUE="0.50E-12" />
+		<PARAM NAME="D_LAT_ASS_OMPF" TYPE="java.lang.Double" VALUE="0.02E-12" />
+		<PARAM NAME="RELPROP_OMPF" TYPE="java.lang.Double" VALUE="111.0" />
+		<PARAM NAME="STARTING_PATCH_COUNT_OMPF" TYPE="java.lang.Integer" VALUE="3" />
+		<PARAM NAME="STARTING_PATCH_ANGLE_OMPF" TYPE="java.lang.Double" VALUE="0.1164" />
+		<PARAM NAME="COLOUR_OMPF" TYPE="java.awt.Color" VALUE="-894374" />
+
+		<!-- Protein: OmpA -->
+		<PARAM NAME="R_OMPA" TYPE="java.lang.Double" VALUE="1.3E-9" />
+		<PARAM NAME="HEIGHT_OMPA" TYPE="java.lang.Double" VALUE="5.0E-9" />
+		<PARAM NAME="D_LAT_OMPA" TYPE="java.lang.Double" VALUE="0.50E-12" />
+		<PARAM NAME="D_LAT_ASS_OMPA" TYPE="java.lang.Double" VALUE="0.02E-12" />
+		<PARAM NAME="RELPROP_OMPA" TYPE="java.lang.Double" VALUE="333.0" />
+		<PARAM NAME="STARTING_PATCH_COUNT_OMPA" TYPE="java.lang.Integer" VALUE="2" />
+		<PARAM NAME="STARTING_PATCH_ANGLE_OMPA" TYPE="java.lang.Double" VALUE="0.1745" />
+		<PARAM NAME="COLOUR_OMPA" TYPE="java.awt.Color" VALUE="-10179132" />
+
+		<!-- Protein: TolA -->
+		<PARAM NAME="R_TOLA" TYPE="java.lang.Double" VALUE="3.75E-9" />
+		<PARAM NAME="HEIGHT_TOLA" TYPE="java.lang.Double" VALUE="5.0E-9" />
+		<PARAM NAME="D_LAT_TOLA" TYPE="java.lang.Double" VALUE="0.50E-12" />
+		<PARAM NAME="D_LAT_ASS_TOLA" TYPE="java.lang.Double" VALUE="0.01E-12" />
+		<PARAM NAME="RELPROP_TOLA" TYPE="java.lang.Double" VALUE="1" />
+		<PARAM NAME="STARTING_PATCH_COUNT_TOLA" TYPE="java.lang.Integer" VALUE="0" />
+		<PARAM NAME="STARTING_PATCH_ANGLE_TOLA" TYPE="java.lang.Double" VALUE="0" />
+		<PARAM NAME="COLOUR_TOLA" TYPE="java.awt.Color" VALUE="-4096777" />
+
+		<!-- Protein: Generаl -->
+		<PARAM NAME="COLOUR_DIFF" TYPE="java.awt.Color" VALUE="-22462" />
+
+		<!-- Inner Membrane -->
+		<PARAM NAME="SIMULATE_INNER_MEMBRANE" TYPE="java.lang.Boolean" VALUE="false" />
+		<PARAM NAME="IM_PERCENTAGE_OCCUPANCY" TYPE="java.lang.Double" VALUE="0" />
+	</PARAMETERS>
+</EXPERIMENT>
