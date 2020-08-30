@@ -8,6 +8,7 @@ import os
 import sys
 import math
 import time
+import shutil
 import statistics
 import xml.etree.ElementTree
 
@@ -22,11 +23,17 @@ matplotlib.rcParams.update({'errorbar.capsize': 5})
 ### Constants
 OBS_TIMEPOINTS = [ 0, 0.03333, 0.06666, 0.09999, 0.13332, 0.16665, 0.19998, 0.23331, 0.26664, 0.29997, 0.3333, 0.36663, 0.39996, 0.43329, 0.46662, 0.49995, 0.53328, 0.56661, 0.59994, 0.63327, 0.6666, 0.69993, 0.73326, 0.76659, 0.79992, 0.83325, 0.86658, 0.89991, 0.93324, 0.96657, 0.9999 ]
 OBS_DATAPOINTS = [ 0, 0.0029767, 0.0050122, 0.0072264, 0.0086977, 0.009889, 0.010522, 0.010981, 0.011506, 0.012154, 0.012248, 0.012361, 0.012455, 0.012771, 0.012979, 0.013139, 0.013295, 0.013527, 0.013463, 0.013404, 0.013382, 0.013477, 0.013626, 0.013696, 0.013713, 0.01374, 0.013832, 0.013819, 0.013804, 0.013799, 0.013784 ]
+TIMEPOINTS = [ (x+1)/1000 for x in range(999) ]
 RIP_DIR = './runs_in_progress/'
+RS_DIR = './runs_saved/'
+SIM_OUT_DIR_NAME = 'output_files'
 RESULTS_DIR_NAME = 'RESULTS'
 INDIVIDUAL_MSDS_DIR_NAME = 'Individual MSDs'
-### Varaibles
+### Variables
+RUN_NAME = ''
 CURRENT_DIR = ''
+SHOULD_MOVE = True
+RESULTS = { }
 
 
 def clear_screen():
@@ -39,9 +46,7 @@ def clear_screen():
 
 def least_squares_score(timepoints, msds):
     point_deltas = [ ]
-    for i in range(len(timepoints)):
-        x = timepoints[i]
-        true_msd = msds[i]
+    for x, true_msd in zip(timepoints, msds):
         ideal_msd = -0.1325*x**6 + 0.5272*x**5 - 0.8634*x**4 + 0.7492*x**3 - 0.3695*x**2 + 0.1029*x - 9E-05 # Function to approximate experimental data
         point_deltas.append(true_msd - ideal_msd)
 
@@ -52,13 +57,14 @@ def least_squares_score(timepoints, msds):
 
 
 def setup():
+    global RUN_NAME
     global CURRENT_DIR
 
     clear_screen()
     runs = sorted(next(os.walk(RIP_DIR))[1])
     print('Available runs:')
-    for i in range(len(runs)):
-        print(str(i+1) + ')', runs[i])
+    for i, run in enumerate(runs):
+        print(str(i+1) + ')', run)
     print()
     chosen_dir = ''
     while not os.path.isdir(chosen_dir):
@@ -67,7 +73,7 @@ def setup():
             chosen_dir = os.path.join(RIP_DIR, runs[choice-1])
         except:
             chosen_dir = ''
-    print()
+    RUN_NAME = runs[choice-1]
     CURRENT_DIR = chosen_dir
 
     if not os.path.isdir(os.path.join(CURRENT_DIR, RESULTS_DIR_NAME)):
@@ -75,132 +81,157 @@ def setup():
 
 
 def perform_checks():
-    # TODO:
-    # 1) Check if any jobs are running
-    # 2) Check if the finished jobs ran to completion
-    # 3) Ask if should move to runs_saved directory
-    return
+    global SHOULD_MOVE
+    print()
+    print('Move run directory when finished?')
+    SHOULD_MOVE = input('> ').upper() in [ 'Y', 'YES' ]
 
 
-def compile_results():
-    output_files = sorted(os.listdir(os.path.join(CURRENT_DIR, 'output_files/')))
-    xml_files = [ x for x in output_files if x[-4:] == '.xml' ]
+def load_and_calculate_results():
+    global RESULTS
 
-    paramset_ids = set()
-    for filename in xml_files:
-        if 'paramset-' in filename:
-            ps_id = int(filename.split('paramset-')[1].split('_')[0])
-            paramset_ids.add(ps_id)
-    paramset_ids = sorted(paramset_ids)
+    # Check number of parameter sets
+    try:
+        paramsets_file_fn = next(f for f in os.listdir(CURRENT_DIR) if f[-4:] == '.xml')
+    except:
+        print('Error finding parameter sets file')
+        exit(1)
+    e = xml.etree.ElementTree.parse(os.path.join(CURRENT_DIR, paramsets_file_fn)).getroot()
+    num_paramsets = len(e.findall('PARAMETERS'))
 
-    ps_mean_simtime_means = [ ]
-    ps_rms_simtime_stds = [ ]
-    ps_mean_msds = [ ]
-    ps_rms_stds = [ ]
-    ps_scores = [ ]
-    timepoints = [ ]
+    # Get relevant output files
+    all_output_files = sorted(os.listdir(os.path.join(CURRENT_DIR, SIM_OUT_DIR_NAME)))
+    xml_output_files = [ x for x in all_output_files if x[-4:] == '.xml' ]
 
-    for ps_num in paramset_ids:
-        simtime_means = [ ]
-        simtime_stds = [ ]
-        msds_set = [ ]
-        stds_set = [ ]
+    incomplete_file_names = set()
 
-        ps_xml_files = [ x for x in xml_files if 'paramset-' + str(ps_num) in x ]
-        for fn in ps_xml_files:
-            # Parse original output XML file
-            e = xml.etree.ElementTree.parse(os.path.join(CURRENT_DIR, 'output_files', fn)).getroot()
+    for paramset_id in range(num_paramsets):
+        paramset_results = { 'n' : 0,
+                             'result_msds' : { },
+                             'result_stds' : { },
+                             'timing_mean' : None,
+                             'timing_std' : None,
+                             'lss' : None }
+        individual_file_results = [ ]
 
-            # Load time statistics to array
-            stats = e.find('STATISTICS').findall('STAT')
-            for stat in stats:
-                stat_name = [ value for key, value in stat.items() if key == 'NAME' ][0]
-                stat_value = [ value for key, value in stat.items() if key == 'VALUE' ][0]
-                if stat_name == 'MEAN_SIMULATION_DURATION':
-                    simtime_means.append(float(stat_value))
-                elif stat_name == 'STD_SIMULATION_DURATION':
-                    simtime_stds.append(float(stat_value))
+        # Get data from all available output files for each parameter set
+        paramset_output_files = [ x for x in xml_output_files if ('paramset-' + str(paramset_id) + '_') in x ]
+        for filename in paramset_output_files:
+            filepath = os.path.join(CURRENT_DIR, SIM_OUT_DIR_NAME, filename)
+            e = xml.etree.ElementTree.parse(filepath).getroot()
 
-            # Load results to array
-            results = e.find('RESULTS').findall('RES')
-            msds = [ ]
-            stds = [ ]
-            for res in results:
-                for key, value in res.items():
-                    if key == 'MSD':
-                        msds.append(float(value))
-                    elif key == 'STD':
-                        try:
-                            stds.append(float(value))
-                        except:
-                            stds.append(0)
-                    elif key == 'T':
-                        if float(value) not in timepoints:
-                            timepoints.append(float(value))
-            msds_set.append(msds)
-            stds_set.append(stds)
+            file_results = { 'n' : 0,
+                             'result_msds' : { },
+                             'result_stds' : { },
+                             'timing_mean' : None,
+                             'timing_std' : None }
 
-        # Calculate mean of simulation time means, and RMS of simulation time S.D.s, and save to the arrays
-        mean_simtime_mean = 0
-        rms_simtime_std = 0
-        if len(ps_xml_files) > 0:
-            mean_simtime_mean = sum(simtime_means) / len(simtime_means)
-            rms_simtime_std = math.sqrt( sum([ x**2 for x in simtime_stds ]) / len(simtime_stds) )
-        ps_mean_simtime_means.append(mean_simtime_mean)
-        ps_rms_simtime_stds.append(rms_simtime_std)
+            # Load results
+            try:
+                for res in e.find('RESULTS').findall('RES'):
+                    timepoint = float(res.get('T'))
+                    msd = float(res.get('MSD'))
+                    std = float(res.get('STD'))
+                    num = int(float(res.get('NUM')))
+                    file_results['n'] = num
+                    file_results['result_msds'][timepoint] = msd
+                    file_results['result_stds'][timepoint] = std
+            except:
+                incomplete_file_names.add(filename)
+                continue
 
-        # Calculate mean of MSDs, and RMS of MSD S.D.s, and save to the arrays
-        mean_msds = [ ]
-        rms_stds = [ ]
-        if len(ps_xml_files) > 0:
-            num_timepoints = len(msds_set[0])
-            for tp_index in range(num_timepoints):
-                timepoint_msds = [ ]
-                timepoint_stds = [ ]
-                for set_num in range(len(msds_set)):
-                    timepoint_msds.append(msds_set[set_num][tp_index])
-                    timepoint_stds.append(stds_set[set_num][tp_index])
-                mean_timepoint_msd = sum(timepoint_msds) / len(timepoint_msds)
-                rms_timpoint_std = math.sqrt( sum([ x**2 for x in timepoint_stds ]) / len(timepoint_stds) )
-                mean_msds.append(mean_timepoint_msd)
-                rms_stds.append(rms_timpoint_std)
-        ps_mean_msds.append(mean_msds)
-        ps_rms_stds.append(rms_stds)
+            # Load time stats
+            try:
+                stats = e.find('STATISTICS').findall('STAT')
+                for stat in stats:
+                    stat_name = next(value for key, value in stat.items() if key == 'NAME')
+                    stat_value = next(value for key, value in stat.items() if key == 'VALUE')
+                    if stat_name == 'MEAN_SIMULATION_DURATION':
+                        file_results['timing_mean'] = float(stat_value)
+                    elif stat_name == 'STD_SIMULATION_DURATION':
+                        file_results['timing_std'] = float(stat_value)
+            except:
+                incomplete_file_names.add(filename)
+                continue
 
-        # Calculate least squares score
-        lss = 0
-        if len(ps_xml_files) > 0:
-            lss = least_squares_score(timepoints, mean_msds)
-        ps_scores.append(lss)
+            individual_file_results.append(file_results)
+
+        # Count total number of runs
+        for file_results in individual_file_results:
+            paramset_results['n'] += file_results['n']
+
+        # Calculate weighted average of timings
+        timing_mean = 0
+        timing_std = 0
+        for file_results in individual_file_results:
+            timing_mean += file_results['n'] * file_results['timing_mean']
+            timing_std += file_results['n'] * file_results['timing_std']**2
+        timing_mean /= paramset_results['n']
+        timing_std = math.sqrt(timing_std / paramset_results['n'])
+        paramset_results['timing_mean'] = timing_mean
+        paramset_results['timing_std'] = timing_std
+
+        # Calculate weighted average of results
+        for timepoint in TIMEPOINTS:
+            results_msd = 0
+            results_std = 0
+            for file_results in individual_file_results:
+                results_msd += file_results['n'] * file_results['result_msds'][timepoint]
+                results_std += file_results['n'] * file_results['result_stds'][timepoint]**2
+            results_msd /= paramset_results['n']
+            results_std = math.sqrt(results_std / paramset_results['n'])
+            paramset_results['result_msds'][timepoint] = results_msd
+            paramset_results['result_stds'][timepoint] = results_std
+
+        # Calculate LSS
+        paramset_results['lss'] = least_squares_score(list(paramset_results['result_msds'].keys()),
+                                                      list(paramset_results['result_msds'].values()))
+
+        RESULTS[paramset_id] = paramset_results
+
+    clear_screen()
+    if len(incomplete_file_names) > 0:
+        print('WARNING: Some instances did not complete enough runs to be included in the analyses:')
+        for filename in sorted(incomplete_file_names):
+            print('*', filename)
+    print()
+    print('The run counts for each parameter set are:')
+    for paramset_id, paramset_results in RESULTS.items():
+        print(paramset_id, paramset_results['n'])
+    print()
+    input('> ')
+
+
+def write_results():
+    paramset_ids = list(RESULTS.keys())
+    result_msds = [ list(x['result_msds'].values()) for x in RESULTS.values() ]
+    result_stds = [ list(x['result_stds'].values()) for x in RESULTS.values() ]
+    runtime_means = [ x['timing_mean'] for x in RESULTS.values() ]
+    runtime_stds = [ x['timing_std'] for x in RESULTS.values() ]
+    least_squares_scores = [ x['lss'] for x in RESULTS.values() ]
 
     # Write run times to CSV
     with open(os.path.join(CURRENT_DIR, RESULTS_DIR_NAME, 'Run Times.csv'), 'w') as outfile:
         outfile.write('Parameter Set,Run Time Mean (s),Run Time S.D. (s)\n')
-        for i in range(len(paramset_ids)):
-            outfile.write(str(paramset_ids[i]) + ',' + str(round(ps_mean_simtime_means[i], 9)) + ',' + str(round(ps_rms_simtime_stds[i], 9)) + '\n')
+        for paramset_id, paramset_results in RESULTS.items():
+            outfile.write(str(paramset_id) + ',' + str(round(paramset_results['timing_mean'], 9)) + ',' + str(round(paramset_results['timing_std'], 9)) + '\n')
 
     # Write MSDs to CSV
     with open(os.path.join(CURRENT_DIR, RESULTS_DIR_NAME, 'MSDs.csv'), 'w') as outfile:
         outfile.write('Time (s),' + ','.join([ 'Set ' + str(x) + ',Set ' + str(x) for x in paramset_ids ]) + '\n')
-        outfile.write(',' + ','.join(['MSD (µm^2),MSD S.D. (µm^2)'] * len(paramset_ids)) + '\n')
-        for i in range(num_timepoints):
-            try:
-                outfile.write(str(timepoints[i]) + ',' + ','.join([ str(round(ps_mean_msds[x][i], 9)) + ',' + str(round(ps_rms_stds[x][i], 9)) for x in range(len(paramset_ids)) ]) + '\n')
-            except Exception as e:
-                break
+        outfile.write(',' + ','.join(['MSD (µm^2),MSD S.D. (µm^2)'] * len(RESULTS.keys())) + '\n')
+        for timepoint in TIMEPOINTS:
+            outfile.write(str(timepoint) + ',' + ','.join([ str(round(paramset_results['result_msds'][timepoint], 9)) + ',' + str(round(paramset_results['result_stds'][timepoint], 9)) for paramset_results in RESULTS.values() ]) + '\n')
 
     # Write least squares scores to CSV
     with open(os.path.join(CURRENT_DIR, RESULTS_DIR_NAME, 'Scores.csv'), 'w') as outfile:
         outfile.write('Parameter Set,Least Squares Score)\n')
-        for i in range(len(paramset_ids)):
-            try:
-                outfile.write(str(paramset_ids[i]) + ',' + str(round(ps_scores[i], 2)) + '\n')
-            except Exception as e:
-                break
+        for paramset_id, paramset_results in RESULTS.items():
+            outfile.write(str(paramset_id) + ',' + str(round(paramset_results['lss'], 2)) + '\n')
 
     # Plot bar chart of least squares scores
     ax = plt.subplot(111)
-    ax.bar(paramset_ids, ps_scores, width=0.5, align='center')
+    ax.bar(paramset_ids, least_squares_scores, width=0.5, align='center')
     #ax.set_ylim(0, 100)
     plt.xticks(paramset_ids, [ str(x) for x in paramset_ids ])
     plt.xlabel('Parameter Set')
@@ -209,9 +240,9 @@ def compile_results():
     plt.close()
 
     # Get graph specifics
-    ps_axis_label = ''
-    ps_axis_values = [ ]
-    ps_axis_value_type = ''
+    axis_label = ''
+    axis_values = [ ]
+    axis_value_type = ''
     do_individual_graphs = False
     do_linreg = False
 
@@ -223,14 +254,13 @@ def compile_results():
             if line:
                 paramname = line.split(': ')[0]
                 paramvals = line.split(': ')[1].split(', ')
-                discrepancies.append( (paramname, paramvals) )
+                discrepancies.append((paramname, paramvals))
 
     # Prompt for graph specifics
     clear_screen()
     if len(discrepancies) > 0:
         print('Discrepancies:')
-        for i in range(len(discrepancies)):
-            mm = discrepancies[i]
+        for i, mm in enumerate(discrepancies):
             if mm[1].count(mm[1][0]) == len(mm[1]):
                 print(str(i+1) + ')', (mm[0] + ' ' * 30)[:30], 'All ' + str(mm[1][0]))
             else:
@@ -239,29 +269,29 @@ def compile_results():
         print('No discrepancies.')
     print()
     print('Enter parameter set title')
-    ps_axis_label = input('> ')
+    axis_label = input('> ')
     print()
     while True:
         print('Enter parameter set values (comma seperated, length ' + str(len(paramset_ids)) + ')')
         axis_labels_text = input('> ')
-        ps_axis_values = [ x.strip() for x in axis_labels_text.split(',') ]
-        if len(ps_axis_values) == len(paramset_ids):
+        axis_values = [ x.strip() for x in axis_labels_text.split(',') ]
+        if len(axis_values) == len(paramset_ids):
             break
         print('Wrong length.')
     try:
-        [ float(x) for x in ps_axis_values ]
+        [ float(x) for x in axis_values ]
         print()
         print('Use proportional axis for runtimes?')
         if input('> ').upper() in [ 'Y', 'YES' ]:
-            ps_axis_values = [ float(x) for x in ps_axis_values ]
-            ps_axis_value_type = 'Number'
+            axis_values = [ float(x) for x in axis_values ]
+            axis_value_type = 'Number'
         else:
-            ps_axis_value_type = 'String'
+            axis_value_type = 'String'
     except:
         print('Axis labels will be strings.')
-        ps_axis_value_type = 'String'
-    print()
-    if ps_axis_value_type == 'Number':
+        axis_value_type = 'String'
+    if axis_value_type == 'Number':
+        print()
         print('Perform linear regression on runtimes?')
         do_linreg = input('> ').upper() in [ 'Y', 'YES' ]
     print()
@@ -273,13 +303,13 @@ def compile_results():
 
     # Linear regression fit for run times
     if do_linreg:
-        slope, intercept, r_value, p_value, std_err = scistats.linregress(ps_axis_values, ps_mean_simtime_means)
+        slope, intercept, r_value, p_value, std_err = scistats.linregress(axis_values, runtime_means)
 
     # Plot scatter graph of run times with error bars, with linear regression fit on top
     ax = plt.subplot(111)
-    ax.errorbar(ps_axis_values, ps_mean_simtime_means, yerr=ps_rms_simtime_stds, fmt='o', linestyle='None')
+    ax.errorbar(axis_values, runtime_means, yerr=runtime_stds, fmt='o', linestyle='None')
     if do_linreg:
-        xs = np.array(ps_axis_values)
+        xs = np.array(axis_values)
         ys = slope * xs + intercept
         ax.plot(xs, ys, '-r', color='black', label='y = ' + str(round(slope, 1)) + 'x + ' + str(round(intercept, 1)) + ', R2 = ' + str(round(r_value**2, 3)))
         #box = ax.get_position()
@@ -287,7 +317,7 @@ def compile_results():
         leg = ax.legend(loc='lower center', bbox_to_anchor=(0.5, 1.0), ncol=1)
         for legobj in leg.legendHandles:
             legobj.set_linewidth(2.0)
-    plt.xlabel(ps_axis_label)
+    plt.xlabel(axis_label)
     plt.ylabel('Time (s)')
     plt.savefig(os.path.join(CURRENT_DIR, RESULTS_DIR_NAME, 'Run Times Graph.png'), dpi=600)
     plt.close()
@@ -297,15 +327,12 @@ def compile_results():
     ax = plt.subplot(111)
     ax.plot(OBS_TIMEPOINTS, OBS_DATAPOINTS, color='black', linewidth=1)
     ax.scatter(OBS_TIMEPOINTS, OBS_DATAPOINTS, color='black', s=3)
-    for i in range(len(ps_axis_values)):
-        try:
-            line = ax.plot(timepoints, ps_mean_msds[i], linewidth=0.5, label=str(ps_axis_values[i]))
-            line_colours.append(line[0].get_color())
-        except Exception as e:
-            pass
+    for ps_axis_value, ps_result_msds in zip(axis_values, result_msds):
+        line = ax.plot(TIMEPOINTS, ps_result_msds, linewidth=0.5, label=str(ps_axis_value))
+        line_colours.append(line[0].get_color())
     box = ax.get_position()
     ax.set_position([box.x0, box.y0, box.width * 0.85, box.height])
-    leg = ax.legend(title=ps_axis_label, loc='center left', bbox_to_anchor=(1.0, 0.5))
+    leg = ax.legend(title=axis_label, loc='center left', bbox_to_anchor=(1.0, 0.5))
     for legobj in leg.legendHandles:
         legobj.set_linewidth(2.0)
     ax.set_ylim(bottom=0)
@@ -318,26 +345,34 @@ def compile_results():
     if do_individual_graphs:
         if not os.path.isdir(os.path.join(CURRENT_DIR, RESULTS_DIR_NAME, INDIVIDUAL_MSDS_DIR_NAME)):
             os.mkdir(os.path.join(CURRENT_DIR, RESULTS_DIR_NAME, INDIVIDUAL_MSDS_DIR_NAME))
-        for i in range(len(ps_axis_values)):
+        for ps_axis_value, ps_result_msds, ps_result_stds, ps_line_colour in zip(axis_values, result_msds, result_stds, line_colours):
             ax = plt.subplot(111)
             ax.plot(OBS_TIMEPOINTS, OBS_DATAPOINTS, color='black', linewidth=1)
             try:
                 ax.scatter(OBS_TIMEPOINTS, OBS_DATAPOINTS, color='black', s=3)
-                ax.plot(timepoints, ps_mean_msds[i], linewidth=0.5, label=str(ps_axis_values[i]), color=line_colours[i])
-                error_lower = [ ps_mean_msds[i][j] - ps_rms_stds[i][j] for j in range(len(ps_mean_msds[i])) ]
-                error_upper = [ ps_mean_msds[i][j] + ps_rms_stds[i][j] for j in range(len(ps_mean_msds[i])) ]
-                ax.fill_between(timepoints, error_lower, error_upper, alpha=0.25, facecolor=line_colours[i])
+                ax.plot(TIMEPOINTS, ps_result_msds, linewidth=0.5, label=str(ps_axis_value), color=ps_line_colour)
+                error_lower = [ ps_result_msds[i] - ps_result_stds[i] for i in range(len(ps_result_msds)) ]
+                error_upper = [ ps_result_msds[i] + ps_result_stds[i] for i in range(len(ps_result_msds)) ]
+                ax.fill_between(TIMEPOINTS, error_lower, error_upper, alpha=0.25, facecolor=ps_line_colour)
                 ax.set_ylim(bottom=0)
                 ax.set_xlim(left=0)
                 plt.xlabel('Time (s)')
                 plt.ylabel('MSD (µm^2)')
-                plt.savefig(os.path.join(CURRENT_DIR, RESULTS_DIR_NAME, INDIVIDUAL_MSDS_DIR_NAME, str(ps_axis_values[i]) + '.png'), dpi=600)
+                plt.savefig(os.path.join(CURRENT_DIR, RESULTS_DIR_NAME, INDIVIDUAL_MSDS_DIR_NAME, str(ps_axis_value) + '.png'), dpi=600)
             except Exception as e:
                 pass
             plt.close()
 
 
+def move_directory():
+    if SHOULD_MOVE:
+        shutil.move(os.path.join(RIP_DIR, RUN_NAME),
+                    os.path.join(RS_DIR, RUN_NAME))
+
+
 if __name__ == '__main__':
     setup()
     perform_checks()
-    compile_results()
+    load_and_calculate_results()
+    write_results()
+    move_directory()
