@@ -39,7 +39,7 @@ def clear_screen():
 def continue_prompt():
     print()
     print('Continue?')
-    choice = input('> ')
+    choice = input('> ').strip()
     if choice.upper() not in ['Y', 'YES']:
         exit()
 
@@ -55,7 +55,7 @@ def get_purpose():
     print('Select function:')
     print('1) Start new job set.')
     print('2) Status update.')
-    return int(input('> '))
+    return int(input('> ').strip())
 
 
 def load_ps(ps_type='Choice'):
@@ -68,7 +68,7 @@ def load_ps(ps_type='Choice'):
         print('Choose parameter set:')
         for i in range(len(ps_filenames)):
             print(str(i+1) + ')', ps_filenames[i])
-        choice = int(input('> '))
+        choice = int(input('> ').strip())
         print()
         chosen_filename = ps_filenames[choice-1]
 
@@ -151,11 +151,11 @@ def review_ps():
 
     clear_screen()
     print('How many instances per parameter set?')
-    NUM_INSTANCES = int(input('> '))
+    NUM_INSTANCES = int(input('> ').strip())
 
     clear_screen()
     print('How many runs per instance?')
-    instance_runs = int(input('> '))
+    instance_runs = int(input('> ').strip())
     total_runs = NUM_INSTANCES * instance_runs
 
     clear_screen()
@@ -269,15 +269,19 @@ def generate_paramset():
 def generate_jobscript():
     clear_screen()
     print('Run time limit (hh:mm:ss)')
-    run_time = input('> ')
+    run_time = input('> ').strip()
+
+    clear_screen()
+    print('Partition name (leave blank for default: \'nodes\')')
+    partition_name = input('> ').strip()
 
     clear_screen()
     print('Email alerts?')
-    alerts = input('> ').upper() in ['Y', 'YES']
+    alerts = input('> ').strip().upper() in ['Y', 'YES']
 
     if alerts:
         print('Email address')
-        email = input('> ')
+        email = input('> ').strip()
 
     with open(os.path.join(CURRENT_DIR, 'jobscript.sh'), 'w') as outfile:
         outfile.write('#!/bin/bash\n')
@@ -285,6 +289,8 @@ def generate_jobscript():
         if alerts:
             outfile.write('#SBATCH --mail-type=ALL\n')
             outfile.write('#SBATCH --mail-user=' + email + '\n')
+        if partition_name != '':
+            outfile.write('#SBATCH --partition=' + partition_name + '\n')
         outfile.write('#SBATCH --ntasks=8\n')
         outfile.write('#SBATCH --mem=4gb\n')
         outfile.write('#SBATCH --time=' + run_time + '\n')
@@ -374,7 +380,7 @@ def status():
         chosen_dir = ''
         while not os.path.isdir(chosen_dir):
             try:
-                choice = int(input('> '))
+                choice = int(input('> ').strip())
                 chosen_dir = os.path.join(RIP_DIR,  runs[choice-1])
             except:
                 chosen_dir = ''

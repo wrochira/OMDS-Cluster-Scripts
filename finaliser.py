@@ -69,7 +69,7 @@ def setup():
     chosen_dir = ''
     while not os.path.isdir(chosen_dir):
         try:
-            choice = int(input('> '))
+            choice = int(input('> ').strip())
             chosen_dir = os.path.join(RIP_DIR, runs[choice-1])
         except:
             chosen_dir = ''
@@ -84,7 +84,7 @@ def perform_checks():
     global SHOULD_MOVE
     print()
     print('Move run directory when finished?')
-    SHOULD_MOVE = input('> ').upper() in [ 'Y', 'YES' ]
+    SHOULD_MOVE = input('> ').strip().upper() in [ 'Y', 'YES' ]
 
 
 def load_and_calculate_results():
@@ -269,11 +269,11 @@ def write_results():
         print('No discrepancies.')
     print()
     print('Enter parameter set title')
-    axis_label = input('> ')
+    axis_label = input('> ').strip()
     print()
     while True:
         print('Enter parameter set values (comma seperated, length ' + str(len(paramset_ids)) + ')')
-        axis_labels_text = input('> ')
+        axis_labels_text = input('> ').strip()
         axis_values = [ x.strip() for x in axis_labels_text.split(',') ]
         if len(axis_values) == len(paramset_ids):
             break
@@ -282,7 +282,7 @@ def write_results():
         [ float(x) for x in axis_values ]
         print()
         print('Use proportional axis for runtimes?')
-        if input('> ').upper() in [ 'Y', 'YES' ]:
+        if input('> ').strip().upper() in [ 'Y', 'YES' ]:
             axis_values = [ float(x) for x in axis_values ]
             axis_value_type = 'Number'
         else:
@@ -293,10 +293,10 @@ def write_results():
     if axis_value_type == 'Number':
         print()
         print('Perform linear regression on runtimes?')
-        do_linreg = input('> ').upper() in [ 'Y', 'YES' ]
+        do_linreg = input('> ').strip().upper() in [ 'Y', 'YES' ]
     print()
     print('Produce individual graphs for each parameter set?')
-    do_individual_graphs = input('> ').upper() in [ 'Y', 'YES' ]
+    do_individual_graphs = input('> ').strip().upper() in [ 'Y', 'YES' ]
     print()
     print('Finalising results...')
     print()
@@ -339,7 +339,7 @@ def write_results():
     ax.set_xlim(left=0)
     plt.xlabel('Time (s)')
     plt.ylabel('MSD (µm^2)')
-    plt.savefig(os.path.join(CURRENT_DIR, RESULTS_DIR_NAME, 'MSDs Graph.png'), dpi=600)
+    plt.savefig(os.path.join(CURRENT_DIR, RESULTS_DIR_NAME, 'MSDs Graph.png'), bbox_inches='tight', dpi=667)
     plt.close()
 
     if do_individual_graphs:
