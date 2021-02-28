@@ -83,8 +83,9 @@ def print_table(rows, col_widths):
 def least_squares_score(timepoints, msds):
     point_deltas = [ ]
     for x, true_msd in zip(timepoints, msds):
-        ideal_msd = -0.1325*x**6 + 0.5272*x**5 - 0.8634*x**4 + 0.7492*x**3 - 0.3695*x**2 + 0.1029*x - 9E-05 # Function to approximate experimental data
-        point_deltas.append(true_msd - ideal_msd)
+        if 0 < x < 1:
+            ideal_msd = -0.1325*x**6 + 0.5272*x**5 - 0.8634*x**4 + 0.7492*x**3 - 0.3695*x**2 + 0.1029*x - 9E-05 # Function to approximate experimental data
+            point_deltas.append(true_msd - ideal_msd)
     score = math.sqrt(sum([ x**2 for x in point_deltas ]))
     return score
 
