@@ -1,12 +1,14 @@
+# -*- coding: utf-8 -*-
+
 """
 Notes:
 * Before running this script on Viking, be sure to load an appropriate Python 3 module
-* What SLURM refers to as the 'array job ID' (ArrayJobID) is refeered to in this script as 'job group ID'
+* What SLURM refers to as the 'array job ID' (ArrayJobID) is referred to in this script as 'job group ID'
 """
 
 import sys
 if sys.version_info[0] < 3:
-    print('You must load a compatible Python module before running tis script.')
+    print('You must load a compatible Python module before running this script.')
     print('One such module can be loaded with the following command:')
     print('\tmodule load data/scikit-learn/0.20.2-foss-2018b-Python-3.6.6\n')
     exit(1)
@@ -40,7 +42,6 @@ CLF_PENDING = 'PENDING'
 CLF_FINISHED = 'FINISHED'
 OBS_TIMEPOINTS = [ 0, 0.03333, 0.06666, 0.09999, 0.13332, 0.16665, 0.19998, 0.23331, 0.26664, 0.29997, 0.3333, 0.36663, 0.39996, 0.43329, 0.46662, 0.49995, 0.53328, 0.56661, 0.59994, 0.63327, 0.6666, 0.69993, 0.73326, 0.76659, 0.79992, 0.83325, 0.86658, 0.89991, 0.93324, 0.96657, 0.9999 ]
 OBS_DATAPOINTS = [ 0, 0.0029767, 0.0050122, 0.0072264, 0.0086977, 0.009889, 0.010522, 0.010981, 0.011506, 0.012154, 0.012248, 0.012361, 0.012455, 0.012771, 0.012979, 0.013139, 0.013295, 0.013527, 0.013463, 0.013404, 0.013382, 0.013477, 0.013626, 0.013696, 0.013713, 0.01374, 0.013832, 0.013819, 0.013804, 0.013799, 0.013784 ]
-TIMEPOINTS = [ (x+1)/1000 for x in range(999) ]
 
 JOB_SETS = { }
 
@@ -108,7 +109,6 @@ def update_job_set_data():
         # Check if analysis has already been performed, and skip it if so
         if RESULTS_DIR_NAME in os.listdir(job_set_path):
             JOB_SETS[job_set_name]['classification'] = CLF_FINISHED
-            continue
         # Get job IDs and run distribution info
         job_group_ids = [ ]
         paramset_title = None
@@ -472,7 +472,7 @@ def analyse():
     print('Choose a job-set:')
     finished_job_set_names = [ ]
     for job_set_name, job_set in JOB_SETS.items():
-        if job_set['classification'] == CLF_PENDING:
+        if job_set['classification'] in (CLF_PENDING, CLF_FINISHED):
             finished_job_set_names.append(job_set_name)
     finished_job_set_names.sort()
     for i, job_set_name in enumerate(finished_job_set_names):
@@ -558,7 +558,8 @@ def analyse():
         paramset_results['timing_mean'] = timing_mean
         paramset_results['timing_std'] = timing_std
         # Calculate weighted average of results
-        for timepoint in TIMEPOINTS:
+        timepoints = file_results['result_msds'].keys()
+        for timepoint in timepoints:
             results_msd = 0
             results_std = 0
             for file_results in paramset_file_results:
@@ -602,6 +603,8 @@ def analyse():
     input('> ')
     # Create the results directory
     results_dir = os.path.join(run_dir, RESULTS_DIR_NAME)
+    if os.path.exists(results_dir):
+        shutil.rmtree(results_dir)
     os.mkdir(results_dir)
     paramset_ids = list(results.keys())
     result_msds = [ list(x['result_msds'].values()) for x in results.values() ]
@@ -618,7 +621,7 @@ def analyse():
     with open(os.path.join(results_dir, 'MSDs.csv'), 'w') as outfile:
         outfile.write('Time (s),' + ','.join([ 'Set ' + str(x) + ',Set ' + str(x) for x in paramset_ids ]) + '\n')
         outfile.write(',' + ','.join(['MSD (µm^2),MSD S.D. (µm^2)'] * len(results.keys())) + '\n')
-        for timepoint in TIMEPOINTS:
+        for timepoint in timepoints:
             outfile.write(str(timepoint) + ',' + ','.join([ str(round(paramset_results['result_msds'][timepoint], 9)) + ',' + str(round(paramset_results['result_stds'][timepoint], 9)) for paramset_results in results.values() ]) + '\n')
     # Write least squares scores to CSV
     with open(os.path.join(results_dir, 'Scores.csv'), 'w') as outfile:
@@ -725,7 +728,7 @@ def analyse():
     ax.plot(OBS_TIMEPOINTS, OBS_DATAPOINTS, color='black', linewidth=1)
     ax.scatter(OBS_TIMEPOINTS, OBS_DATAPOINTS, color='black', s=3)
     for ps_axis_value, ps_result_msds in zip(axis_values, result_msds):
-        line = ax.plot(TIMEPOINTS, ps_result_msds, linewidth=0.5, label=str(ps_axis_value))
+        line = ax.plot(timepoints, ps_result_msds, linewidth=0.5, label=str(ps_axis_value))
         line_colours.append(line[0].get_color())
     box = ax.get_position()
     ax.set_position([box.x0, box.y0, box.width * 0.85, box.height])
@@ -746,10 +749,10 @@ def analyse():
             ax.plot(OBS_TIMEPOINTS, OBS_DATAPOINTS, color='black', linewidth=1)
             try:
                 ax.scatter(OBS_TIMEPOINTS, OBS_DATAPOINTS, color='black', s=3)
-                ax.plot(TIMEPOINTS, ps_result_msds, linewidth=0.5, label=str(ps_axis_value), color=ps_line_colour)
+                ax.plot(timepoints, ps_result_msds, linewidth=0.5, label=str(ps_axis_value), color=ps_line_colour)
                 error_lower = [ ps_result_msds[i] - ps_result_stds[i] for i in range(len(ps_result_msds)) ]
                 error_upper = [ ps_result_msds[i] + ps_result_stds[i] for i in range(len(ps_result_msds)) ]
-                ax.fill_between(TIMEPOINTS, error_lower, error_upper, alpha=0.25, facecolor=ps_line_colour)
+                ax.fill_between(timepoints, error_lower, error_upper, alpha=0.25, facecolor=ps_line_colour)
                 ax.set_ylim(bottom=0)
                 ax.set_xlim(left=0)
                 plt.xlabel('Time (s)')
