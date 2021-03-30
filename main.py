@@ -551,16 +551,18 @@ def analyse():
         # Calculate weighted average of timings
         timing_mean = 0
         timing_std = 0
+        timepoints = set()
         for file_results in paramset_file_results:
             timing_mean += file_results['n'] * file_results['timing_mean']
             timing_std += file_results['n'] * file_results['timing_std']**2
+            timepoints.update(set(file_results['result_msds'].keys()))
         timing_mean /= paramset_results['n']
         timing_std = math.sqrt(timing_std / paramset_results['n'])
         paramset_results['timing_mean'] = timing_mean
         paramset_results['timing_std'] = timing_std
+        paramset_results['timepoints'] = sorted(list(timepoints))
         # Calculate weighted average of results
-        timepoints = file_results['result_msds'].keys()
-        for timepoint in timepoints:
+        for timepoint in paramset_results['timepoints']:
             results_msd = 0
             results_std = 0
             for file_results in paramset_file_results:
@@ -608,6 +610,7 @@ def analyse():
         shutil.rmtree(results_dir)
     os.mkdir(results_dir)
     paramset_ids = list(results.keys())
+    timepoints = [ x['timepoints'] for x in results.values() ]
     result_msds = [ list(x['result_msds'].values()) for x in results.values() ]
     result_stds = [ list(x['result_stds'].values()) for x in results.values() ]
     runtime_means = [ x['timing_mean'] for x in results.values() ]
@@ -622,8 +625,14 @@ def analyse():
     with open(os.path.join(results_dir, 'MSDs.csv'), 'w') as outfile:
         outfile.write('Time (s),' + ','.join([ 'Set ' + str(x) + ',Set ' + str(x) for x in paramset_ids ]) + '\n')
         outfile.write(',' + ','.join(['MSD (µm^2),MSD S.D. (µm^2)'] * len(results.keys())) + '\n')
-        for timepoint in timepoints:
-            outfile.write(str(timepoint) + ',' + ','.join([ str(round(paramset_results['result_msds'][timepoint], 9)) + ',' + str(round(paramset_results['result_stds'][timepoint], 9)) for paramset_results in results.values() ]) + '\n')
+        all_timepoints = sorted(list(set([ a for b in timepoints for a in b ])))
+        for timepoint in all_timepoints:
+            line_values = [ str(timepoint) ]
+            for paramset_results in results.values():
+                msd = str(round(paramset_results['result_msds'][timepoint], 9)) if timepoint in paramset_results['result_msds'].keys() else '-'
+                std = str(round(paramset_results['result_stds'][timepoint], 9)) if timepoint in paramset_results['result_stds'].keys() else '-'
+                line_values += [ msd, std ]
+            outfile.write(','.join(line_values) + '\n')
     # Write least squares scores to CSV
     with open(os.path.join(results_dir, 'Scores.csv'), 'w') as outfile:
         outfile.write('Parameter Set,Least Squares Score)\n')
@@ -728,8 +737,8 @@ def analyse():
     ax = plt.subplot(111)
     ax.plot(OBS_TIMEPOINTS, OBS_DATAPOINTS, color='black', linewidth=1)
     ax.scatter(OBS_TIMEPOINTS, OBS_DATAPOINTS, color='black', s=3)
-    for ps_axis_value, ps_result_msds in zip(axis_values, result_msds):
-        line = ax.plot(timepoints, ps_result_msds, linewidth=0.5, label=str(ps_axis_value))
+    for ps_axis_value, ps_timepoints, ps_result_msds in zip(axis_values, timepoints, result_msds):
+        line = ax.plot(ps_timepoints, ps_result_msds, linewidth=0.5, label=str(ps_axis_value))
         line_colours.append(line[0].get_color())
     box = ax.get_position()
     ax.set_position([box.x0, box.y0, box.width * 0.85, box.height])
@@ -745,15 +754,15 @@ def analyse():
     if do_individual_graphs:
         if not os.path.isdir(os.path.join(results_dir, INDIVIDUAL_MSDS_DIR_NAME)):
             os.mkdir(os.path.join(results_dir, INDIVIDUAL_MSDS_DIR_NAME))
-        for ps_axis_value, ps_result_msds, ps_result_stds, ps_line_colour in zip(axis_values, result_msds, result_stds, line_colours):
+        for ps_axis_value, ps_timepoints, ps_result_msds, ps_result_stds, ps_line_colour in zip(axis_values, timepoints, result_msds, result_stds, line_colours):
             ax = plt.subplot(111)
             ax.plot(OBS_TIMEPOINTS, OBS_DATAPOINTS, color='black', linewidth=1)
             try:
                 ax.scatter(OBS_TIMEPOINTS, OBS_DATAPOINTS, color='black', s=3)
-                ax.plot(timepoints, ps_result_msds, linewidth=0.5, label=str(ps_axis_value), color=ps_line_colour)
+                ax.plot(ps_timepoints, ps_result_msds, linewidth=0.5, label=str(ps_axis_value), color=ps_line_colour)
                 error_lower = [ ps_result_msds[i] - ps_result_stds[i] for i in range(len(ps_result_msds)) ]
                 error_upper = [ ps_result_msds[i] + ps_result_stds[i] for i in range(len(ps_result_msds)) ]
-                ax.fill_between(timepoints, error_lower, error_upper, alpha=0.25, facecolor=ps_line_colour)
+                ax.fill_between(ps_timepoints, error_lower, error_upper, alpha=0.25, facecolor=ps_line_colour)
                 ax.set_ylim(bottom=0)
                 ax.set_xlim(left=0)
                 plt.xlabel('Time (s)')
